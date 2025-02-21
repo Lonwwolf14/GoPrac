@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - schema: "sql/schema"    # where your migrations live
+    queries: "sql/queries"  # where your .sql query files live
+    engine: "postgresql"
+    gen:
+      go:
+        package: "database"    # name of the generated package
+        out: "internal/database"    # where to output the generated code
