@@ -42,6 +42,7 @@ func main() {
 		DB:        queries,
 	}
 	mux.HandleFunc("/", wrapHandler(appState, handlers.StartPage))
+	mux.HandleFunc("/addTask", wrapHandler(appState, handlers.AddTask))
 	fmt.Printf("%s\n", configMain.CurrentUserName)
 	fmt.Println("Server is running on PORT :8080")
 	err = http.ListenAndServe(":8080", mux)

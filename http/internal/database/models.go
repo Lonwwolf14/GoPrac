@@ -12,5 +12,5 @@ type Task struct {
 	ID            int32
 	Title         string
 	Detail        sql.NullString
-	CurrentStatus sql.NullString
+	CurrentStatus bool
 }

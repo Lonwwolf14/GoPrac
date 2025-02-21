@@ -20,7 +20,7 @@ type CreateTaskParams struct {
 	ID            int32
 	Title         string
 	Detail        sql.NullString
-	CurrentStatus sql.NullString
+	CurrentStatus bool
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
