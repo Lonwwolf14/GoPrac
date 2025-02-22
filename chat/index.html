@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+</head>
+
+<body>
+    <h1>WebSocket Client</h1>
+    <div>
+        <input type="text" id="messageInput" placeholder="Enter your message">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <div id="messages"></div>
+
+    <script>
+        let chat;
+
+        function connect(){
+            const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            chat = new WebSocket(`${protocol}${window.location.host}/chat`);
+
+
+
+            chat.onopen = function(){
+                console.log("Connected to WebSocket server");
+            }
+
+            chat.onmessage = function(event){
+                let messageDisplay = document.getElementById("messages");
+                messageDisplay.innerHTML += `<p>${event.data}</p>`;
+            }
+
+            chat.onclose = function () {
+                console.log("WebSocket connection closed, retrying...");
+                setTimeout(connect, 1000); // Reconnect after 1 second
+            };
+
+            chat.onerror = function(error){
+                console.error("WebSocket error:", error);
+            }
+        }
+
+        function sendMessage(){
+            let input = document.getElementById("messageInput");
+            let message = input.value;
+            chat.send(message);
+            input.value = "";
+        }
+        connect();
+    </script>
+</body>
+
+</html>
