@@ -9,6 +9,7 @@ import (
 	"httpServer/internal/handlers"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
 
@@ -22,7 +23,7 @@ func statDB(DBURL string) (*sql.DB, error) {
 }
 
 func main() {
-	mux := http.NewServeMux()
+	router := mux.NewRouter()
 
 	configMain, err := config.ConfigRead()
 	if err != nil {
@@ -41,11 +42,14 @@ func main() {
 		AppConfig: configMain,
 		DB:        queries,
 	}
-	mux.HandleFunc("/", wrapHandler(appState, handlers.StartPage))
-	mux.HandleFunc("/addTask", wrapHandler(appState, handlers.AddTask))
+	router.HandleFunc("/", wrapHandler(appState, handlers.StartPage)).Methods("GET")
+	router.HandleFunc("/addTask", wrapHandler(appState, handlers.AddTask)).Methods("POST")
+	router.HandleFunc("/listTasks", wrapHandler(appState, handlers.ListTasks)).Methods("GET")
+	router.HandleFunc("/deleteTask/{task_id}", wrapHandler(appState, handlers.DeleteTask)).Methods("DELETE")
+	router.HandleFunc("/completeTask/{task_id}", wrapHandler(appState, handlers.UpdateTask)).Methods("PUT")
 	fmt.Printf("%s\n", configMain.CurrentUserName)
 	fmt.Println("Server is running on PORT :8080")
-	err = http.ListenAndServe(":8080", mux)
+	err = http.ListenAndServe(":8080", router)
 	if err != nil {
 		fmt.Printf("%s", err)
 	}

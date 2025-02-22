@@ -11,25 +11,19 @@ import (
 )
 
 const createTask = `-- name: CreateTask :one
-INSERT INTO Tasks (id, title, detail, current_status) 
-VALUES ($1, $2, $3, $4) 
+INSERT INTO tasks (title, detail, current_status) 
+VALUES ($1, $2, $3) 
 RETURNING id, title, detail, current_status
 `
 
 type CreateTaskParams struct {
-	ID            int32
 	Title         string
 	Detail        sql.NullString
 	CurrentStatus bool
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
-	row := q.db.QueryRowContext(ctx, createTask,
-		arg.ID,
-		arg.Title,
-		arg.Detail,
-		arg.CurrentStatus,
-	)
+	row := q.db.QueryRowContext(ctx, createTask, arg.Title, arg.Detail, arg.CurrentStatus)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -38,4 +32,54 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.CurrentStatus,
 	)
 	return i, err
+}
+
+const deleteTask = `-- name: DeleteTask :exec
+DELETE FROM tasks WHERE id = $1
+`
+
+func (q *Queries) DeleteTask(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteTask, id)
+	return err
+}
+
+const listTasks = `-- name: ListTasks :many
+SELECT id, title, detail, current_status FROM tasks
+`
+
+func (q *Queries) ListTasks(ctx context.Context) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, listTasks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Task
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Detail,
+			&i.CurrentStatus,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateTask = `-- name: UpdateTask :exec
+UPDATE tasks SET current_status = TRUE WHERE id = $1
+`
+
+func (q *Queries) UpdateTask(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, updateTask, id)
+	return err
 }
