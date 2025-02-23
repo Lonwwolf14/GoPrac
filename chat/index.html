@@ -5,32 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Client</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body>
-    <h1>WebSocket Client</h1>
-    <div>
-        <input type="text" id="messageInput" placeholder="Enter your message">
-        <button onclick="sendMessage()">Send</button>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">WebSocket Client</h1>
+        <div id="messages" class="h-64 overflow-y-auto border border-gray-300 rounded-lg p-4 mb-4 bg-gray-50"></div>
+        <div class="flex">
+            <input type="text" id="messageInput" placeholder="Enter your message" class="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none">
+            <button onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-700">Send</button>
+        </div>
     </div>
-    <div id="messages"></div>
 
     <script>
         let chat;
 
-        function connect(){
+        function connect() {
             const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
             chat = new WebSocket(`${protocol}${window.location.host}/chat`);
 
-
-
-            chat.onopen = function(){
+            chat.onopen = function () {
                 console.log("Connected to WebSocket server");
             }
 
-            chat.onmessage = function(event){
+            chat.onmessage = function (event) {
                 let messageDisplay = document.getElementById("messages");
-                messageDisplay.innerHTML += `<p>${event.data}</p>`;
+                messageDisplay.innerHTML += `<p class="bg-gray-200 p-2 rounded-lg mb-2">${event.data}</p>`;
+                messageDisplay.scrollTop = messageDisplay.scrollHeight; // Auto-scroll to the bottom
             }
 
             chat.onclose = function () {
@@ -38,16 +40,18 @@
                 setTimeout(connect, 1000); // Reconnect after 1 second
             };
 
-            chat.onerror = function(error){
+            chat.onerror = function (error) {
                 console.error("WebSocket error:", error);
             }
         }
 
-        function sendMessage(){
+        function sendMessage() {
             let input = document.getElementById("messageInput");
             let message = input.value;
-            chat.send(message);
-            input.value = "";
+            if (message.trim() !== "") {
+                chat.send(message);
+                input.value = "";
+            }
         }
         connect();
     </script>
